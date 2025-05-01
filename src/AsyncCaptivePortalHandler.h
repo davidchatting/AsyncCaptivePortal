@@ -28,9 +28,7 @@ class AsyncCaptivePortalHandler : public AsyncWebHandler {
             "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
             "    <meta http-equiv=\"refresh\" content=\"0; url=" + location + "\">"
             "  </head>"
-            "  <body>"
-            "    <p>You need to <a href=\"" + location + "\">log in</a> to access this network.</p>"
-            "  </body>"
+            "  <body></body>"
             "</html>"
           );
           request->send(response);
