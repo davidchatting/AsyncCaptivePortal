@@ -2,8 +2,8 @@
 #include <ESPAsyncWebServer.h>
 #include "AsyncCaptivePortal.h"
 
-auto server = AsyncWebServer(80);
-auto portal = AsyncCaptivePortal("Basic Portal");
+static AsyncWebServer server(80);
+static AsyncCaptivePortal portal("AsyncCaptivePortal");
 
 void setup() {
   Serial.begin(115200);
