@@ -17,10 +17,12 @@ private:
   AsyncCaptivePortalHandler handler;
   static int max_connections;
 
-  static std::function<void()> onClientConnected;
+  static std::function<void(bool)> onClientConnected;
   static void onWiFiEvent(WiFiEvent_t event)
   {
-    if (event == SYSTEM_EVENT_AP_STACONNECTED && onClientConnected) onClientConnected();
+    if(event == WIFI_EVENT_AP_STACONNECTED || event == WIFI_EVENT_AP_STADISCONNECTED || event == WIFI_EVENT_AP_STOP) {
+      if (onClientConnected) onClientConnected(event == WIFI_EVENT_AP_STACONNECTED);
+    }
   }
 
 public:
@@ -67,10 +69,11 @@ public:
   /* Retrieve a RequestHandler thats pre-configured to do HTTP captive Portal logic */
   AsyncWebHandler* getHandler() { return &handler; }
 
-  void setOnClientConnected(std::function<void()> callback)
+  void setOnClientConnected(std::function<void(bool)> callback)
   {
     onClientConnected = callback;
   }
 };
 
+std::function<void(bool)> AsyncCaptivePortal::onClientConnected = nullptr;
 int AsyncCaptivePortal::max_connections = 1;
