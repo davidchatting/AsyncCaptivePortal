@@ -2,6 +2,7 @@
 
 #include <DNSServer.h>
 #include <WiFi.h>
+#include <esp_wifi.h>
 #include <ESPAsyncWebServer.h>
 
 #include "Debug.h"
@@ -15,15 +16,12 @@ private:
 
   DNSServer dnsServer;
   AsyncCaptivePortalHandler handler;
-  static int max_connections;
+
+  wifi_sta_list_t staList;
+  int numConnections = 0;
+  static int maxConnections;
 
   static std::function<void(bool)> onClientConnected;
-  static void onWiFiEvent(WiFiEvent_t event)
-  {
-    if(event == WIFI_EVENT_AP_STACONNECTED || event == WIFI_EVENT_AP_STADISCONNECTED || event == WIFI_EVENT_AP_STOP) {
-      if (onClientConnected) onClientConnected(event == WIFI_EVENT_AP_STACONNECTED);
-    }
-  }
 
 public:
   AsyncCaptivePortal(String ssid = "", String passphrase = "") : ssid(ssid), passphrase(passphrase) {}
@@ -38,9 +36,8 @@ public:
     Debug::log("Starting captive portal...");
 
     WiFi.mode(WIFI_AP);
-    WiFi.onEvent(onWiFiEvent);
 
-    if(WiFi.softAP(ssid, passphrase, 1, 0, max_connections)) {
+    if(WiFi.softAP(ssid, passphrase, 1, 0, maxConnections)) {
         String selfIp = WiFi.softAPIP().toString();
         Debug::log("WiFi: " + selfIp);
 
@@ -56,6 +53,12 @@ public:
   /* Tick the portal, this needs to be called regularly to ensure DNS requests are handled */
   void loop()
   {
+    if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
+      if(staList.num != numConnections) {
+        if (onClientConnected) onClientConnected(staList.num > 0);
+        numConnections = staList.num;
+      }
+    }
     dnsServer.processNextRequest();
   }
 
@@ -76,4 +79,4 @@ public:
 };
 
 std::function<void(bool)> AsyncCaptivePortal::onClientConnected = nullptr;
-int AsyncCaptivePortal::max_connections = 1;
+int AsyncCaptivePortal::maxConnections = 1;
