@@ -15,6 +15,13 @@ private:
 
   DNSServer dnsServer;
   AsyncCaptivePortalHandler handler;
+  static int max_connections;
+
+  static std::function<void()> onClientConnected;
+  static void onWiFiEvent(WiFiEvent_t event)
+  {
+    if (event == SYSTEM_EVENT_AP_STACONNECTED && onClientConnected) onClientConnected();
+  }
 
 public:
   AsyncCaptivePortal(String ssid = "", String passphrase = "") : ssid(ssid), passphrase(passphrase) {}
@@ -29,7 +36,9 @@ public:
     Debug::log("Starting captive portal...");
 
     WiFi.mode(WIFI_AP);
-    if(WiFi.softAP(ssid, passphrase, 1, 0, 8)) {
+    WiFi.onEvent(onWiFiEvent);
+
+    if(WiFi.softAP(ssid, passphrase, 1, 0, max_connections)) {
         String selfIp = WiFi.softAPIP().toString();
         Debug::log("WiFi: " + selfIp);
 
@@ -57,4 +66,11 @@ public:
 
   /* Retrieve a RequestHandler thats pre-configured to do HTTP captive Portal logic */
   AsyncWebHandler* getHandler() { return &handler; }
+
+  void setOnClientConnected(std::function<void()> callback)
+  {
+    onClientConnected = callback;
+  }
 };
+
+int AsyncCaptivePortal::max_connections = 1;
