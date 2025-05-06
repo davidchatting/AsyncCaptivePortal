@@ -79,4 +79,4 @@ public:
 };
 
 std::function<void(bool)> AsyncCaptivePortal::onClientConnected = nullptr;
-int AsyncCaptivePortal::maxConnections = 1;
+int AsyncCaptivePortal::maxConnections = 4;
