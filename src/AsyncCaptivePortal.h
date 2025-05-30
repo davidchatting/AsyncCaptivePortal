@@ -55,7 +55,7 @@ public:
   {
     if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
       if(staList.num != numConnections) {
-        if (onClientConnected) onClientConnected(staList.num > 0);
+        if (onClientConnected) onClientConnected(staList.num > numConnections);
         numConnections = staList.num;
       }
     }
