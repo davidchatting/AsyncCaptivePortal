@@ -18,8 +18,8 @@ private:
   DNSServer dnsServer;
   AsyncCaptivePortalHandler handler;
 
-  // wifi_sta_list_t staList;
-  // int numConnections = 0;
+  wifi_sta_list_t staList;
+  int numConnections = 0;
   static int maxConnections;
 
   static std::function<void(bool)> onClientConnected;
@@ -56,12 +56,12 @@ public:
   /* Tick the portal, this needs to be called regularly to ensure DNS requests are handled */
   void loop()
   {
-    // if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
-    //   if(staList.num != numConnections) {
-    //     if (onClientConnected) onClientConnected(staList.num > numConnections);
-    //     numConnections = staList.num;
-    //   }
-    // }
+    if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
+      if(staList.num != numConnections) {
+        if (onClientConnected) onClientConnected(staList.num > numConnections);
+        numConnections = staList.num;
+      }
+    }
     if(popup) dnsServer.processNextRequest();
   }
 
