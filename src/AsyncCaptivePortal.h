@@ -13,18 +13,19 @@ class AsyncCaptivePortal
 private:
   String ssid;
   String passphrase;
+  bool popup;
 
   DNSServer dnsServer;
   AsyncCaptivePortalHandler handler;
 
-  wifi_sta_list_t staList;
-  int numConnections = 0;
+  // wifi_sta_list_t staList;
+  // int numConnections = 0;
   static int maxConnections;
 
   static std::function<void(bool)> onClientConnected;
 
 public:
-  AsyncCaptivePortal(String ssid = "", String passphrase = "") : ssid(ssid), passphrase(passphrase) {}
+  AsyncCaptivePortal(String ssid = "", String passphrase = "", bool popup = true) : ssid(ssid), passphrase(passphrase), popup(popup) {}
   virtual ~AsyncCaptivePortal() {}
 
   /*
@@ -41,8 +42,10 @@ public:
         String selfIp = WiFi.softAPIP().toString();
         Debug::log("WiFi: " + selfIp);
 
-        dnsServer.start(53, "*", WiFi.softAPIP());
-        Debug::log("DNS: " + selfIp + ":53");
+        if(popup){
+          dnsServer.start(53, "*", WiFi.softAPIP());
+          Debug::log("DNS: " + selfIp + ":53");
+        }
 
         handler.setHostname(selfIp);
         Debug::log("HTTP: " + selfIp + ":80");
@@ -53,19 +56,19 @@ public:
   /* Tick the portal, this needs to be called regularly to ensure DNS requests are handled */
   void loop()
   {
-    if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
-      if(staList.num != numConnections) {
-        if (onClientConnected) onClientConnected(staList.num > numConnections);
-        numConnections = staList.num;
-      }
-    }
-    dnsServer.processNextRequest();
+    // if (esp_wifi_ap_get_sta_list(&staList) == ESP_OK) {
+    //   if(staList.num != numConnections) {
+    //     if (onClientConnected) onClientConnected(staList.num > numConnections);
+    //     numConnections = staList.num;
+    //   }
+    // }
+    if(popup) dnsServer.processNextRequest();
   }
 
   /* Stop the portal by disconnecting the WiFi and stopping the DNS Server*/
   void end()
   {
-    dnsServer.stop();
+    if(popup) dnsServer.stop();
     WiFi.disconnect(true);
   }
 
